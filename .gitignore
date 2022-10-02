@@ -1,0 +1,14 @@
+.idea
+Include
+Lib
+__pycache__
+Scripts
+logs
+mainconfig.py
+pyvenv.cfg
+pyodbc.pyi
+bin
+include
+lib
+lib64
+share
