@@ -19,5 +19,12 @@ PAGE_DEFAULT = {
 FIREWALL_STATUS = {
     'protocol': ['tcp', 'udp', 'all'],
     'port': ['ssh', 'web', 'all'],
-    'block': ['deny', 'allow']
+    'block': ['DROP', 'REJECT', 'ACCEPT']
+}
+
+# chains 
+FW_CHAINS = {
+    'ssh': 'FW-ssh', 
+    'web': 'FW-web',
+    'all': 'FW-all',
 }
