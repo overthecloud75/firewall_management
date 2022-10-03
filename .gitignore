@@ -12,3 +12,4 @@ include
 lib
 lib64
 share
+nohup.out

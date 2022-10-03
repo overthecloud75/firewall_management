@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container my-3">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalForm">
+        firewall update
+    </button>
+    <table class="table">
+    {% if data_list %}
+        <thead>
+            <tr class="table-dark">
+                <th>번호</th>
+                <th>이름</th>
+                <th>ip</th>
+                <th>protocol</th>
+                <th>port</th>
+                <th>block</th>
+                <th>message</th>
+            </tr>
+        </thead>
+        {% for data in data_list %}
+        <tr>
+            <td>{{ paging.offset + loop.index0 + 1}}</td>
+            <td>{{ data.name }}</td>
+            <td>{{ data.src }}</td>
+            <td>{{ target_def[data.name].protocol }}</td>
+            <td>{{ target_def[data.name].multiport.dports }}</td>
+            <td>{{ data.block }}</td>
+            <td>{{ data.message }}</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="3">firewall 정보가 없습니다.</td>
+        </tr>
+    {% endif %}
+    </table>
+</div>
+{% include 'paging.html' %}
+  
+<!-- Modal -->
+<div class="modal fade" id="modalForm" tabindex="-1" aria-labelledby="modalFormLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 font-weight-bold" id="modalFormLabel">Firewall update</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" class="post-form" id="post-form">
+                    {{ form.csrf_token }}
+                    {% include "form_errors.html" %}
+                    <div class="form-group my-3">
+                        <label for="ip">ip</label>
+                        <input type="text" class="form-control" name="ip" id="ip" value="{{ data.ip or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="protocol">protocol ex) {{ firewall_status.protocol }} </label>
+                        <select class="form-select" name="protocol" id="protocol" aria-label="Default select">
+                            {% for protocol in firewall_status.protocol %}
+                            <option value="{{ protocol }}" {% if data.protocol == protocol %} selected {% endif %}>{{ protocol }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group my-3">
+                        <label for="protocol">port ex) {{ firewall_status.port }} </label>
+                        <select class="form-select" name="port" id="port" aria-label="Default select">
+                            {% for port in firewall_status.port %}
+                            <option value="{{ port }}" {% if data.port == port %} selected {% endif %}>{{ port }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="block">block ex) {{ firewall_status.block }} </label>
+                        <select class="form-select" name="block" id="block" aria-label="Default select">
+                            {% for block in firewall_status.block %}
+                            <option value="{{ block }}" {% if data.protocol == block %} selected {% endif %}>{{ block }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btn-save">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type='text/javascript'>
+$("#btn-save").click(function(e) {
+    console.log("btn-save");
+	e.preventDefault();
+	if(!confirm('정말로 저장하시겠습니다.?')) return;
+	$('#post-form')[0].submit();
+});
+</script>
+{% endblock %}

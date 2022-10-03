@@ -10,3 +10,6 @@ class Firewall:
         get_page = Page(page)
         paging, data_list = get_page.paginate(data_list)
         return paging, target_def, data_list
+
+    def post(self, request_data={}):
+        print(request_data)

@@ -1,5 +1,5 @@
 import iptc
-
+import os 
 
 '''
 -P INPUT ACCEPT

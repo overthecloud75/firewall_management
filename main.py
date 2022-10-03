@@ -4,11 +4,6 @@ from logging.config import dictConfig
 from flask import Flask
 from config import BASE_DIR, LOG_DIR
 
-if os.path.exists(os.path.join(BASE_DIR, LOG_DIR)):
-    pass
-else:
-    os.mkdir(os.path.join(BASE_DIR, LOG_DIR))
-
 
 def create_app():
     # https://flask.palletsprojects.com/en/2.0.x/logging/
