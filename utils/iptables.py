@@ -56,15 +56,26 @@ class Iptables:
                 self._enrole_chain(chain)
                 self._target_role(port, chain)
 
-    def post_rule(self, ip, protocol='tcp', port='all', block='DROP'):
+    def post_rule(self, ip, ip_class='/32', protocol='tcp', port='all', block='DROP'):
         chain = FW_CHAINS[port]
         if self._validate_ip_address(ip):
             if block=='ACCEPT':
-                cmd = 'iptables -A {chain} -s {ip}/32 -j {block}'.format(ip=ip, block=block, chain=chain)
+                cmd = 'iptables -A {chain} -s {ip_type} -j {block}'.format(ip_type=ip + ip_class, block=block, chain=chain)
             elif block=='REJECT':
-                cmd = 'iptables -A {chain} -s {ip}/32 -j {block} --reject-with icmp-port-unreachable'.format(ip=ip, block=block, chain=chain)
+                cmd = 'iptables -A {chain} -s {ip_type} -j {block} --reject-with icmp-port-unreachable'.format(ip_type=ip + ip_class, block=block, chain=chain)
             else:
-                cmd = 'iptables -A {chain} -s {ip}/32 -j {block}'.format(ip=ip, block='DROP', chain=chain)
+                cmd = 'iptables -A {chain} -s {ip_type} -j {block}'.format(ip_type=ip + ip_class, block='DROP', chain=chain)
+            self._do_cmd(cmd)
+
+    def delete_rule(self, ip, ip_class='/32', protocol='tcp', port='all', block='DROP'):
+        chain = FW_CHAINS[port]
+        if self._validate_ip_address(ip):
+            if block=='ACCEPT':
+                cmd = 'iptables -D {chain} -s {ip_type} -j {block}'.format(ip_type=ip + ip_class, block=block, chain=chain)
+            elif block=='REJECT':
+                cmd = 'iptables -D {chain} -s {ip_type} -j {block} --reject-with icmp-port-unreachable'.format(ip_type=ip + ip_class, block=block, chain=chain)
+            else:
+                cmd = 'iptables -D {chain} -s {ip_type} -j {block}'.format(ip_type=ip + ip_class, block='DROP', chain=chain)
             self._do_cmd(cmd)
 
     def get_rules(self):

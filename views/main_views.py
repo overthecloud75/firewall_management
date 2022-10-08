@@ -16,7 +16,7 @@ def index():
     firewall_status = FIREWALL_STATUS
     form = RuleUpdateForm()
     if request.method == 'POST' and form.validate_on_submit():
-        request_data = {'ip': form.ip.data, 'protocol': form.protocol.data, 'port': form.port.data, 'block': form.block.data}
+        request_data = {'ip': form.ip.data, 'ip_class':form.ip_class.data, 'protocol': form.protocol.data, 'port': form.port.data, 'block': form.block.data}
         firewall.post(request_data=request_data)
         data = request_data
     paging, target_def, data_list = firewall.get(page=page)

@@ -15,7 +15,8 @@ class Firewall:
 
     def post(self, request_data={}):
         ip = request_data['ip']
+        ip_class = request_data['ip_class']
         protocol = request_data['protocol']
         port = request_data['port']
         block = request_data['block']
-        iptables.post_rule(ip, protocol=protocol, port=port, block=block)
+        iptables.post_rule(ip, ip_class=ip_class, protocol=protocol, port=port, block=block)

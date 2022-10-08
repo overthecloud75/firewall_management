@@ -12,6 +12,7 @@
                 <th>번호</th>
                 <th>이름</th>
                 <th>ip</th>
+                <th>class</th>
                 <th>protocol</th>
                 <th>port</th>
                 <th>block</th>
@@ -22,7 +23,8 @@
         <tr>
             <td>{{ paging.offset + loop.index0 + 1}}</td>
             <td>{{ data.name }}</td>
-            <td>{{ data.src }}</td>
+            <td>{{ data.src.split('/')[0] }}</td>
+            <td>{{ '/' + data.src.split('/')[1] }}</td>
             <td>{{ target_def[data.name].protocol }}</td>
             <td>{{ target_def[data.name].multiport.dports }}</td>
             <td>{{ data.block }}</td>
@@ -53,6 +55,14 @@
                     <div class="form-group my-3">
                         <label for="ip">ip</label>
                         <input type="text" class="form-control" name="ip" id="ip" value="{{ data.ip or '' }}">
+                    </div>
+                    <div class="form-group my-3">
+                        <label for="ip_class">class ex) {{ firewall_status.ip_class }}</label>
+                        <select class="form-select" name="ip_class" id="ip_class" aria-label="Default select">
+                            {% for ip_class in firewall_status.ip_class %}
+                            <option value="{{ ip_class }}" {% if data.ip_class == ip_class %} selected {% endif %}>{{ ip_class }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="protocol">protocol ex) {{ firewall_status.protocol }} </label>

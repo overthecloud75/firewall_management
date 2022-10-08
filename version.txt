@@ -9,3 +9,7 @@
         post method in index()
     - 0.1.3 (Iptables)
         post_rule 
+
+22/10/08
+    - 0.1.4 (views, models, Iptables)
+        separate ip and ip_class

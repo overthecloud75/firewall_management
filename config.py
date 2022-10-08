@@ -17,6 +17,7 @@ PAGE_DEFAULT = {
 
 # firewall_status 
 FIREWALL_STATUS = {
+    'ip_class': ['/32', '/24'],
     'protocol': ['tcp', 'udp', 'all'],
     'port': ['ssh', 'web', 'all'],
     'block': ['DROP', 'REJECT', 'ACCEPT']
