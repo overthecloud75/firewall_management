@@ -29,3 +29,9 @@ FW_CHAINS = {
     'web': 'FW-web',
     'all': 'FW-all',
 }
+
+# Fail2Ban, Nginx, Auth log 
+FAIL2BAN_LOG_DIR = '/var/log/fail2ban.log'
+NGINX_ACCESS_LOG_DIR = '/var/log/nginx/access.log'
+AUTH_LOG_DIR = '/var/log/auth.log'
+IPV4_FILE = 'ipv4.csv'

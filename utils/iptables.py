@@ -94,6 +94,9 @@ class Iptables:
                     if 'src' in filter: 
                         filter['name'] = chain
                         filter['message'] = ''
+                        filter['ip'] = filter['src'].split('/')[0]
+                        filter['ip_class'] = '/' + filter['src'].split('/')[1]
+                        del filter['counters']
                         if 'REJECT' in filter['target']:
                             filter['block'] = 'REJECT'
                             filter['message'] = filter['target']['REJECT']['reject-with']

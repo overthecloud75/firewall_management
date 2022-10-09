@@ -2,7 +2,7 @@
 {% block content %}
 
 <div class="container my-3">
-    <button type="button" class="btn btn-primary my-3" data-bs-toggle="modal" data-bs-target="#modalForm">
+    <button type="button" class="btn btn-primary my-3" id="update">
         firewall update
     </button>
     <table class="table">
@@ -19,18 +19,20 @@
                 <th>message</th>
             </tr>
         </thead>
-        {% for data in data_list %}
-        <tr>
-            <td>{{ paging.offset + loop.index0 + 1}}</td>
-            <td>{{ data.name }}</td>
-            <td>{{ data.src.split('/')[0] }}</td>
-            <td>{{ '/' + data.src.split('/')[1] }}</td>
-            <td>{{ target_def[data.name].protocol }}</td>
-            <td>{{ target_def[data.name].multiport.dports }}</td>
-            <td>{{ data.block }}</td>
-            <td>{{ data.message }}</td>
-        </tr>
-        {% endfor %}
+        <tbody>
+            {% for data in data_list %}
+            <tr>
+                <td onClick='handleClick(event, {{ data }}, {{ loop.index0 }})'>{{ paging.offset + loop.index0 + 1}}</td>
+                <td>{{ data.name }}</td>
+                <td>{{ data.ip }}</td>
+                <td>{{ data.ip_class }}</td>
+                <td>{{ target_def[data.name].protocol }}</td>
+                <td>{{ target_def[data.name].multiport.dports }}</td>
+                <td>{{ data.block }}</td>
+                <td>{{ data.message }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     {% else %}
         <tr>
             <td colspan="3">firewall 정보가 없습니다.</td>
@@ -49,12 +51,15 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="post" class="post-form" id="post-form">
+                <form method="post" class="fw-form" id="fw-form">
                     {{ form.csrf_token }}
                     {% include "form_errors.html" %}
                     <div class="form-group my-3">
+                        <input type="hidden" class="form-control" name="no" id="no" value="{{ '' }}">
+                    </div>
+                    <div class="form-group my-3">
                         <label for="ip">ip</label>
-                        <input type="text" class="form-control" name="ip" id="ip" value="{{ data.ip or '' }}">
+                        <input type="text" class="form-control" name="ip" id="ip" value="{{ '' }}">
                     </div>
                     <div class="form-group my-3">
                         <label for="ip_class">class ex) {{ firewall_status.ip_class }}</label>
@@ -93,16 +98,55 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="btn-save">Save changes</button>
+                <button type="button" class="btn btn-primary" id="btn-delete" style="display:none">Delete</button>
             </div>
         </div>
     </div>
 </div>
 <script type='text/javascript'>
+$("#update").click(function(e) {
+    e.preventDefault();
+    $('#modalForm').modal('show');
+    $('#ip').val(''); 
+    document.getElementById("btn-save").style.display = "block";
+    document.getElementById("btn-delete").style.display = "none";
+});
+function handleClick(event, data, index){
+    $('#modalForm').modal('show'); 
+    $('#no').val(index);
+    $('#ip').val(data.ip); 
+    $('#ip_class').val(data.ip_class);
+    $('#block').val(data.block);
+    document.getElementById("btn-save").style.display = "none";
+    document.getElementById("btn-delete").style.display = "block";
+};
 $("#btn-save").click(function(e) {
-    console.log("btn-save");
 	e.preventDefault();
 	if(!confirm('정말로 저장하시겠습니다.?')) return;
-	$('#post-form')[0].submit();
+	$('#fw-form')[0].submit();
+});
+$("#btn-delete").click(function(e) {
+	e.preventDefault();
+	if(!confirm('정말로 삭제하시겠습니다.?')) return;
+
+    let formData = new FormData();
+    formData.append('csrf_token', $('#csrf_token').val());
+    formData.append('ip', $('#ip').val());
+    formData.append('ip_class', $('#ip_class').val());
+    formData.append('protocol', $('#protocol').val());
+    formData.append('port', $('#port').val());
+    formData.append('block', $('#block').val());
+    $.ajax({
+        url: "/firewall/api/delete",
+        method: "POST",
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function (result) {
+            $('tbody tr').eq($('#no').val()).remove();
+        }
+    });
+    $('#modalForm').modal('hide'); 
 });
 </script>
 {% endblock %}

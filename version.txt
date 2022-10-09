@@ -13,3 +13,13 @@
 22/10/08
     - 0.1.4 (views, models, Iptables)
         separate ip and ip_class
+
+22/10/09
+    - 0.1.5 (views)
+        delete fireall rule (ajax method)
+
+    - 0.1.6 (anlyze.py)
+        read fai2ban, nginx access, auth log  
+
+    - 0.1.7 (anlyze.py)
+        find_county from ip 
