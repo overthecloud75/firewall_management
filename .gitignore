@@ -13,5 +13,4 @@ lib
 lib64
 share
 nohup.out
-ipv4.csv
 mainconfig.py

@@ -36,3 +36,17 @@
 
     - 0.2.1
         logging 
+
+    - 0.2.2
+        apply ticket_no
+
+    - 0.2.3
+        apply attack_no
+
+    - 0.2.4 (fix error)
+        auth.py (model: fail2ban_logs -> auth_logs)
+
+ToDoList
+    - evidence.csv
+    - ticknet management 
+    - log monitoring 
