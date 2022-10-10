@@ -68,13 +68,13 @@ class BasicModel:
                         result_list = [result['timestamp'].strftime('%y-%m-%d %H:%M:%S'), result['ip'], result['method'], result['url'], result['http_version'], 
                                         result['status'], result['referer'], result['user_agent'], result['geo_ip']]
                         wr.writerow(result_list)
-                        attack_no = attck_no + 1
+                        attack_no = attack_no + 1
                 else:
                     results = db['auth_logs'].find({'ip': log['ip']}).sort('timestamp', -1)
                     for result in results:
                         result_list = [result['timestamp'].strftime('%y-%m-%d %H:%M:%S'), result['client'], result['ip'], result['id'], result['s_port'], result['geo_ip']]
                         wr.writerow(result_list)
-                        attack_no = attck_no + 1
+                        attack_no = attack_no + 1
 
         subject = subject_main + '공격자 ip: ' + log['ip']
         if attack_no == 0 and os.path.isfile(CSV_FILE_NAME):
