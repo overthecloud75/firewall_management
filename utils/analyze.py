@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import re 
-import csv 
+import csv
+from flask import current_app
 
 try:
     from config import FAIL2BAN_LOG_DIR, NGINX_ACCESS_LOG_DIR, AUTH_LOG_DIR, IPV4_FILE
@@ -18,7 +19,6 @@ class Analyze:
         else:
             self.interval = interval
         self.datetime_before_timestamp  = self.timestamp - timedelta(seconds=self.interval)
-        self.str_before_timestamp = self.datetime_before_timestamp.strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
 
         self.obj = re.compile(r'(?P<ip>.*?)- - \[(?P<time>.*?)\] "(?P<request>.*?)" (?P<status>.*?) (?P<bytes>.*?) "(?P<referer>.*?)" "(?P<ua>.*?)"')
         self.country_list = []
@@ -44,9 +44,14 @@ class Analyze:
 
         request = result.group('request')
         request_list = request.split(' ')
-        method = request_list[0]
-        url = request_list[1]
-        http_version = request_list[2]
+        try:
+            method = request_list[0]
+            url = request_list[1]
+            http_version = request_list[2]
+        except:
+            method = '-'
+            url = request
+            http_version = '-'
         status = int(result.group('status'))
         size = int(result.group('bytes'))
         referer = result.group('referer')
@@ -90,7 +95,7 @@ class Analyze:
 
         ip = new_line_list[6]
         geo_ip = self._find_country(ip)
-        auth_log_dict = {'timestamp': datetime_timestamp, 'client': new_line_list[3], 'id': new_line_list[5], 'ip': ip, 'port': int(new_line_list[7]), 'geo_ip': geo_ip}
+        auth_log_dict = {'timestamp': datetime_timestamp, 'client': new_line_list[3], 'id': new_line_list[5], 'ip': ip, 's_port': int(new_line_list[7]), 'geo_ip': geo_ip}
 
         return auth_log_dict
 
@@ -155,12 +160,14 @@ class Analyze:
 
                 line_list = line.split(' ')
                 line_timestamp = line_list[0] + ' ' + line_list[1]
-                if line_timestamp < self.str_before_timestamp:
+                datetime_timestamp = datetime.strptime(line_timestamp, '%Y-%m-%d %H:%M:%S,%f')
+
+                if datetime_timestamp < self.datetime_before_timestamp:
                     break
-            
+
                 if 'Ban' in line_list:
+                    ban_dict = {}
                     new_line_list = []
-                    new_line_list.append(line_list[0] + ' ' + line_list[1])
                     for i, value in enumerate(line_list):
                         if i > 1:
                             if value != '':
@@ -168,8 +175,10 @@ class Analyze:
                                 new_line_list.append(new_value)
                     ip = new_line_list[-1]    
                     geo_ip = self._find_country(ip)
-                    new_line_list.append(geo_ip)
-                    ban_list.append(new_line_list)
+
+                    ban_dict = {'timestamp': datetime_timestamp, 'action': new_line_list[0], 'level': new_line_list[2], 'origin': new_line_list[3], 
+                                'result': new_line_list[4], 'ip': ip, 'geo_ip': geo_ip}
+                    ban_list.append(ban_dict)
         return ban_list
 
     def read_nginx_access_log(self):
@@ -179,13 +188,16 @@ class Analyze:
 
             reverse_lines = f.readlines()[::-1]
             for i, line in enumerate(reverse_lines):
-                nginx_log_dict = self._parse_nginx_log(line)
-                if nginx_log_dict['timestamp'] < self.datetime_before_timestamp:
-                    break
-            
-                if nginx_log_dict['status'] in [400, 403, 404]:
-                    nginx_log_list.append(nginx_log_dict)
-
+                try:
+                    nginx_log_dict = self._parse_nginx_log(line)
+                    if nginx_log_dict['timestamp'] < self.datetime_before_timestamp:
+                        break
+                
+                    if nginx_log_dict['status'] in [400, 403, 404]:
+                        nginx_log_list.append(nginx_log_dict)
+                except Exception as e:
+                    # current_app.logger.info('nginx log error: {}, line: {}'.format(e, line))
+                    print(e, line)
         return nginx_log_list
 
     def read_auth_log(self):
@@ -201,6 +213,8 @@ class Analyze:
                 elif 'CRON' in line:
                     pass
                 elif 'error' in line:
+                    pass
+                elif 'Accepted password for' in line:
                     pass
                 else:
                     if 'ssh2' in line:

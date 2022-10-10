@@ -1,7 +1,10 @@
 # Firewall
 ### 1. Result
-### 2. Usage
-py -3.8 main.py <br>
-http://127.0.0.1:5000
-### 3. Acknowledgements
-This application is tested in ubuntu 20.0.4
+### 2. Result
+insert firewall rule <br>
+email alert <br>
+### 3. Usage
+python3 main.py <br>
+### 4. Acknowledgements
+This application is tested in ubuntu 20.0.4 <br>
+to insert firewall rule, it uses IPTABLES <br>

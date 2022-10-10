@@ -23,3 +23,13 @@
 
     - 0.1.7 (anlyze.py)
         find_county from ip 
+
+22/10/10
+    - 0.1.8 (db.py)
+        Model to save log_list 
+
+    - 0.1.9 
+        make 'security_users' collection
+
+    - 0.2.0 (db.py)
+        Use smtplib to send alert email

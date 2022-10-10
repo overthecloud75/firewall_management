@@ -35,3 +35,6 @@ FAIL2BAN_LOG_DIR = '/var/log/fail2ban.log'
 NGINX_ACCESS_LOG_DIR = '/var/log/nginx/access.log'
 AUTH_LOG_DIR = '/var/log/auth.log'
 IPV4_FILE = 'ipv4.csv'
+
+# email Setting
+USE_NOTICE_EMAIL = True 
