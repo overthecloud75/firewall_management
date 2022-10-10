@@ -2,15 +2,17 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from datetime import datetime
 from email.utils import COMMASPACE
+import logging
 
 from .mail import send_email 
 from config import USE_NOTICE_EMAIL
 try:
-    from mainconfig import MONITORING_SITE, WEB_SITE, FIREWALL_SITE
+    from mainconfig import MONITORING_SITE, WEB_SITE, FIREWALL_SITE, MANUAL_SITE
 except:
     MONITORING_SITE = 'http://127.0.0.1:8000'
     WEB_SITE = {'domain': 'http://127.0.0.1:5000', 'ip': '127.0.0.1'}
     FIREWALL_SITE = 'http://127.0.0.1:5000/firewall'
+    MANUAL_SITE = ''
 
 MONGO_URL = 'mongodb://localhost:27017/'
 
@@ -19,8 +21,11 @@ db = mongoClient['report']
 
 class BasicModel:
     def __init__(self, model):
+        self.logger = logging.getLogger(__name__)
         self.model = model 
         self.collection = db[model]
+
+        self.logger.info('{} start'.format(self.model))
 
     def _notice_email(self, log, signature=''):
         # check recipents  
@@ -57,9 +62,13 @@ class BasicModel:
                 ' -> {} \n' \
                 '\n' \
                 '방화벽 차단이 필요한 경우 다음의 site 에 접속하셔서 실행해 주세요 \n' \
-                ' -> {}' \
-                .format(site, site, str_time, log['ip'], log['geo_ip'], signature, MONITORING_SITE, FIREWALL_SITE)
+                ' -> {} \n' \
+                '\n' \
+                'Manual: {}' \
+                .format(site, site, str_time, log['ip'], log['geo_ip'], signature, MONITORING_SITE, FIREWALL_SITE, MANUAL_SITE)
 
+            self.logger.info('email: {}'.format(subject))
+            print('email', subject)
             sent = send_email(email=email, subject=subject, body=body)
             return sent 
         else:
@@ -86,4 +95,6 @@ class BasicModel:
         log_list = reversed(log_list)
         for log in log_list:
             self._post(log)
+            self.logger.info('{}: {}'.format(self.model, log))
+            print(self.model, log)
             

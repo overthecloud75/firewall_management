@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import re 
 import csv
-from flask import current_app
+import logging
 
 try:
     from config import FAIL2BAN_LOG_DIR, NGINX_ACCESS_LOG_DIR, AUTH_LOG_DIR, IPV4_FILE
@@ -13,6 +13,8 @@ except:
 class Analyze:
 
     def __init__(self, interval=10, unit='m'):
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Analyze Start')
         self.timestamp = datetime.now()
         if unit == 'm':
             self.interval = interval * 60
@@ -57,7 +59,11 @@ class Analyze:
         referer = result.group('referer')
         user_agent = result.group('ua')
 
-        geo_ip = self._find_country(ip)
+        try:
+            geo_ip = self._find_country(ip)
+        except Exception as e:
+            self.logger.info('{}: {}'.format(e, line))
+            geo_ip = 'un'
 
         nginx_log_dict = {'timestamp': datetime_timestamp, 'ip': ip, 'method': method, 'url': url, 
                             'http_version': http_version, 'status': status, 'size': size, 'referer': referer, 'user_agent': user_agent, 'geo_ip': geo_ip}
@@ -67,7 +73,7 @@ class Analyze:
     def _parse_auth_log(self, line):
         new_line = line
         replace_word_list = ['Invalid user', 'invalid user', 'Disconnected from authenticating user', 'Failed password for', 'from', 
-            'Connection closed by invalid user', 'Disconnected', 'port', 'Connection closed by authenticating user']
+            'Connection closed by invalid user', 'Disconnected', 'port', 'Connection closed by authenticating user', 'Failed none for']
         for replace_word in replace_word_list:
             if replace_word in line:
                 new_line = new_line.replace(replace_word, '')
@@ -94,7 +100,11 @@ class Analyze:
         datetime_timestamp = datetime(year, month_num, int(new_line_list[1]), int(hms[0]), int(hms[1]), int(hms[2]), 0)
 
         ip = new_line_list[6]
-        geo_ip = self._find_country(ip)
+        try:
+            geo_ip = self._find_country(ip)
+        except Exception as e:
+            self.logger.info('{}: {}'.format(e, new_line_list))
+            geo_ip = 'un'
         auth_log_dict = {'timestamp': datetime_timestamp, 'client': new_line_list[3], 'id': new_line_list[5], 'ip': ip, 's_port': int(new_line_list[7]), 'geo_ip': geo_ip}
 
         return auth_log_dict
@@ -173,8 +183,12 @@ class Analyze:
                             if value != '':
                                 new_value = value.replace('\n', '')
                                 new_line_list.append(new_value)
-                    ip = new_line_list[-1]    
-                    geo_ip = self._find_country(ip)
+                    ip = new_line_list[-1]
+                    try:
+                        geo_ip = self._find_country(ip)
+                    except Exception as e:
+                        self.logger.info('{}: {}'.format(e, new_line_list))
+                        geo_ip = 'un'
 
                     ban_dict = {'timestamp': datetime_timestamp, 'action': new_line_list[0], 'level': new_line_list[2], 'origin': new_line_list[3], 
                                 'result': new_line_list[4], 'ip': ip, 'geo_ip': geo_ip}
@@ -196,8 +210,7 @@ class Analyze:
                     if nginx_log_dict['status'] in [400, 403, 404]:
                         nginx_log_list.append(nginx_log_dict)
                 except Exception as e:
-                    # current_app.logger.info('nginx log error: {}, line: {}'.format(e, line))
-                    print(e, line)
+                    self.logger.info('{}: {}'.format(e, line))
         return nginx_log_list
 
     def read_auth_log(self):
