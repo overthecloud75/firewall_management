@@ -45,8 +45,10 @@
 
     - 0.2.4 (fix error)
         auth.py (model: fail2ban_logs -> auth_logs)
+    
+    - 0.2.5 
+        evidence.csv
 
 ToDoList
-    - evidence.csv
-    - ticknet management 
+    - ticket management 
     - log monitoring 

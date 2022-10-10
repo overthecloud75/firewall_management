@@ -38,3 +38,6 @@ IPV4_FILE = 'ipv4.csv'
 
 # email Setting
 USE_NOTICE_EMAIL = True 
+
+# csv_file_name 
+CSV_FILE_NAME = 'evidence.csv'

@@ -1,6 +1,7 @@
 import iptc
 import os
-import ipaddress 
+import ipaddress
+import logging
 
 from config import FW_CHAINS
 
@@ -21,18 +22,18 @@ from config import FW_CHAINS
 
 class Iptables:
     def __init__(self):
-        pass
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Iptables Start')
 
     # https://codefather.tech/blog/validate-ip-address-python/
     def _validate_ip_address(self, address):
         result = True
         try:
             ip = ipaddress.ip_address(address)
-            print('IP address {} is valid. The object returned is {}'.format(address, ip))
+            self.logger.info('IP address {} is valid. The object returned is {}'.format(address, ip))
         except ValueError:
-            print('IP address {} is not valid'.format(address)) 
-            result=False
-        return result
+            self.logger.info('IP address {} is not valid'.format(address)) 
+        return False
 
     # https://gist.github.com/zhangchunlin/1513742/89a38864b41e002e4a6600a946c076ad0fe6f7bb
     def _do_cmd(self, cmd):

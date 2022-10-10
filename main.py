@@ -21,9 +21,9 @@ def read_log():
         nginx_log_list = analyze.read_nginx_access_log()
         auth_log_list = analyze.read_auth_log()
         print(analyze.timestamp)
-        fail2ban_model.many_post(ban_list)
         nginx_model.many_post(nginx_log_list)
         auth_model.many_post(auth_log_list)
+        fail2ban_model.many_post(ban_list)
         time.sleep(300)
         
 def create_app():
