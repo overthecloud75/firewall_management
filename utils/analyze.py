@@ -3,24 +3,22 @@ import re
 import csv
 import logging
 
-try:
-    from config import FAIL2BAN_LOG_DIR, NGINX_ACCESS_LOG_DIR, AUTH_LOG_DIR, IPV4_FILE
-except:
-    FAIL2BAN_LOG_DIR = '/var/log/fail2ban.log'
-    NGINX_ACCESS_LOG_DIR = '/var/log/nginx/access.log'
-    AUTH_LOG_DIR = '/var/log/auth.log'
+from config import FAIL2BAN_LOG_DIR, NGINX_ACCESS_LOG_DIR, AUTH_LOG_DIR, IPV4_FILE, AUTH_LOG_FILTERING
     
 class Analyze:
 
     def __init__(self, interval=10, unit='m'):
         self.logger = logging.getLogger(__name__)
         self.logger.info('Analyze Start')
-        self.timestamp = datetime.now()
+
+        
         if unit == 'm':
             self.interval = interval * 60
         else:
             self.interval = interval
-        self.datetime_before_timestamp  = self.timestamp - timedelta(seconds=self.interval)
+
+        self.timestamp = datetime.now()
+        self.previous_timestamp  = self.timestamp - timedelta(seconds=self.interval)
 
         self.obj = re.compile(r'(?P<ip>.*?)- - \[(?P<time>.*?)\] "(?P<request>.*?)" (?P<status>.*?) (?P<bytes>.*?) "(?P<referer>.*?)" "(?P<ua>.*?)"')
         self.country_list = []
@@ -72,9 +70,7 @@ class Analyze:
 
     def _parse_auth_log(self, line):
         new_line = line
-        replace_word_list = ['Invalid user', 'invalid user', 'Disconnected from authenticating user', 'Failed password for', 'from', 
-            'Connection closed by invalid user', 'Disconnected', 'port', 'Connection closed by authenticating user', 'Failed none for']
-        for replace_word in replace_word_list:
+        for replace_word in AUTH_LOG_FILTERING:
             if replace_word in line:
                 new_line = new_line.replace(replace_word, '')
 
@@ -103,10 +99,9 @@ class Analyze:
         try:
             geo_ip = self._find_country(ip)
         except Exception as e:
-            self.logger.info('{}: {}'.format(e, new_line_list))
+            self.logger.error('{}: {}'.format(e, new_line_list))
             geo_ip = 'un'
         auth_log_dict = {'timestamp': datetime_timestamp, 'client': new_line_list[3], 'id': new_line_list[5], 'ip': ip, 's_port': int(new_line_list[7]), 'geo_ip': geo_ip}
-
         return auth_log_dict
 
     def _find_country(self, ip):
@@ -172,7 +167,7 @@ class Analyze:
                 line_timestamp = line_list[0] + ' ' + line_list[1]
                 datetime_timestamp = datetime.strptime(line_timestamp, '%Y-%m-%d %H:%M:%S,%f')
 
-                if datetime_timestamp < self.datetime_before_timestamp:
+                if datetime_timestamp < self.previous_timestamp:
                     break
 
                 if 'Ban' in line_list:
@@ -187,7 +182,7 @@ class Analyze:
                     try:
                         geo_ip = self._find_country(ip)
                     except Exception as e:
-                        self.logger.info('{}: {}'.format(e, new_line_list))
+                        self.logger.error('{}: {}'.format(e, new_line_list))
                         geo_ip = 'un'
 
                     ban_dict = {'timestamp': datetime_timestamp, 'action': new_line_list[0], 'level': new_line_list[2], 'origin': new_line_list[3], 
@@ -204,13 +199,13 @@ class Analyze:
             for i, line in enumerate(reverse_lines):
                 try:
                     nginx_log_dict = self._parse_nginx_log(line)
-                    if nginx_log_dict['timestamp'] < self.datetime_before_timestamp:
+                    if nginx_log_dict['timestamp'] < self.previous_timestamp:
                         break
                 
                     if nginx_log_dict['status'] in [400, 403, 404]:
                         nginx_log_list.append(nginx_log_dict)
                 except Exception as e:
-                    self.logger.info('{}: {}'.format(e, line))
+                    self.logger.error('{}: {}'.format(e, line))
         return nginx_log_list
 
     def read_auth_log(self):
@@ -232,7 +227,7 @@ class Analyze:
                 else:
                     if 'ssh2' in line:
                         auth_log_dict = self._parse_auth_log(line)
-                        if auth_log_dict['timestamp'] < self.datetime_before_timestamp:
+                        if auth_log_dict['timestamp'] < self.previous_timestamp:
                             break
                         auth_log_list.append(auth_log_dict)
 

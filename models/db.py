@@ -6,7 +6,7 @@ import csv
 import os 
 
 from .mail import send_email 
-from config import USE_NOTICE_EMAIL, CSV_FILE_NAME
+from config import USE_NOTICE_EMAIL, CSV_FILE_NAME, NGINX_ACCESS_LOG_KEYS, AUTH_LOG_KEYS
 try:
     from mainconfig import MONITORING_SITE, WEB_SITE, FIREWALL_SITE, MANUAL_SITE, ANALYZE_SITE
 except:
@@ -39,7 +39,7 @@ class BasicModel:
         str_timestamp = timestamp.strftime('%y%m%d')
         s_timestamp = datetime(timestamp.year, timestamp.month, timestamp.day)
         f_timestamp = s_timestamp + timedelta(days=1)
-        ticket_no = str(db['fail2ban_logs'].estimated_document_count({'timestamp' : {'$gte': s_timestamp, '$lt': f_timestamp}}))
+        ticket_no = str(db['fail2ban_logs'].find({'timestamp' : {'$gte': s_timestamp, '$lt': f_timestamp}}).count())
         if len(ticket_no) == 1:
             ticket_no = 'TCK' + str_timestamp + '-000' + ticket_no
         elif len(ticket_no) == 2:
@@ -50,10 +50,23 @@ class BasicModel:
             ticket_no = 'TCK' + str_timestamp + '-' + ticket_no
         return ticket_no
 
+    def _write_csv_and_get_attack_no(self, results, wr, keys, attack_no):
+        wr.writerow(keys)
+        for result in results:
+            result_list = []
+            for key in keys:
+                if key == 'timestamp':
+                    result_list.append(result[key].strftime('%y-%m-%d %H:%M:%S'))
+                else:
+                    result_list.append(result[key])
+            wr.writerow(result_list)
+            attack_no = attack_no + 1
+        return attack_no
+
     def _get_subject(self, log):
         ticket_no = self._get_ticket_no(log)
-        subject_main = '[Auth 보안 관제: {}] '.format(ticket_no)     
-       
+           
+        subject_main = '[보안 관제]'
         site = WEB_SITE['ip']
         attack_no = 0
 
@@ -61,20 +74,14 @@ class BasicModel:
             wr = csv.writer(csv_file)
             if 'origin' in log:
                 if log['origin'] == '[modesecurity]':
-                    subject_main = '[Web 보안 관제: : {}] '.format(ticket_no)
+                    subject_main = '[{} : {} 보안 관제] '.format(ticket_no, 'WEB')
                     site = WEB_SITE['domain']
                     results = db['nginx_log'].find({'ip': log['ip']}).sort('timestamp', -1)
-                    for result in results:
-                        result_list = [result['timestamp'].strftime('%y-%m-%d %H:%M:%S'), result['ip'], result['method'], result['url'], result['http_version'], 
-                                        result['status'], result['referer'], result['user_agent'], result['geo_ip']]
-                        wr.writerow(result_list)
-                        attack_no = attack_no + 1
+                    attack_no = self._write_csv_and_get_attack_no(results, wr, NGINX_ACCESS_LOG_KEYS, attack_no)
                 else:
+                    subject_main = '[{} : {} 보안 관제] '.format(ticket_no, 'AUTH')  
                     results = db['auth_logs'].find({'ip': log['ip']}).sort('timestamp', -1)
-                    for result in results:
-                        result_list = [result['timestamp'].strftime('%y-%m-%d %H:%M:%S'), result['client'], result['ip'], result['id'], result['s_port'], result['geo_ip']]
-                        wr.writerow(result_list)
-                        attack_no = attack_no + 1
+                    attack_no = self._write_csv_and_get_attack_no(results, wr, AUTH_LOG_KEYS, attack_no)
 
         subject = subject_main + '공격자 ip: ' + log['ip']
         if attack_no == 0 and os.path.isfile(CSV_FILE_NAME):

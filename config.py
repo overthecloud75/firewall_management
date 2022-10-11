@@ -41,3 +41,10 @@ USE_NOTICE_EMAIL = True
 
 # csv_file_name 
 CSV_FILE_NAME = 'evidence.csv'
+
+# log_keys
+NGINX_ACCESS_LOG_KEYS = ['timestamp', 'ip', 'method', 'url', 'http_version', 'status', 'size', 'referer', 'user_agent', 'geo_ip']
+AUTH_LOG_KEYS = ['timestamp', 'client', 'ip', 'id', 's_port', 'geo_ip']
+
+AUTH_LOG_FILTERING = ['Invalid user', 'invalid user', 'Disconnected from authenticating user', 'Failed password for', 'from', 
+            'Connection closed by invalid user', 'Disconnected', 'port', 'Connection closed by authenticating user', 'Failed none for']

@@ -49,6 +49,10 @@
     - 0.2.5 
         evidence.csv
 
+22/10/11
+    - 0.2.6 (analyze.py)
+        previous_timestamp
+
 ToDoList
     - ticket management 
     - log monitoring 

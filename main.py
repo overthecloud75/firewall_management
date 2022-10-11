@@ -3,6 +3,7 @@ import threading
 import time
 from logging.config import dictConfig
 from flask import Flask
+from datetime import datetime
 
 from models import NginxModel, AuthModel, Fail2BanModel
 from utils import Analyze
@@ -13,14 +14,16 @@ def read_log():
     nginx_model = NginxModel()
     auth_model = AuthModel()
     fail2ban_model = Fail2BanModel()
-        
+    analyze = Analyze()  
     while True:
         # timestamp를 refresh
-        analyze = Analyze()  
+        analyze.timestamp = datetime.now()
+        print(analyze.timestamp)
         ban_list = analyze.read_fail2ban_log()
         nginx_log_list = analyze.read_nginx_access_log()
         auth_log_list = analyze.read_auth_log()
-        print(analyze.timestamp)
+        analyze.previous_timestamp = analyze.timestamp
+
         nginx_model.many_post(nginx_log_list)
         auth_model.many_post(auth_log_list)
         fail2ban_model.many_post(ban_list)
