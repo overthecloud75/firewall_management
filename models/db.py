@@ -26,20 +26,27 @@ db.fail2ban_logs.create_index([('timestamp', 1), ('ip', 1)])
 db.auth_logs.create_index([('timestamp', 1), ('ip', 1)])
 db.nginx_logs.create_index([('timestamp', 1), ('ip', 1)])
 
-class BasicModel:
-    def __init__(self, model):
+class LogModel:
+
+    def __init__(self, model='fail2ban_logs', need_notice=False):
         self.logger = logging.getLogger(__name__)
         self.model = model 
-        self.collection = db[model]
+        self.collection = db[self.model]
+
+        self.need_notice = need_notice
 
         self.logger.info('{} start'.format(self.model))
 
-    def _get_ticket_no(self, log):
+    def _get_ticket(self, log):
         timestamp = log['timestamp']
         str_timestamp = timestamp.strftime('%y%m%d')
         s_timestamp = datetime(timestamp.year, timestamp.month, timestamp.day)
         f_timestamp = s_timestamp + timedelta(days=1)
-        ticket_no = str(db['fail2ban_logs'].find({'timestamp' : {'$gte': s_timestamp, '$lt': f_timestamp}}).count())
+        ticket_no = 0
+        results = db['fail2ban_logs'].find({'timestamp' : {'$gte': s_timestamp, '$lt': f_timestamp}})
+        for result in results:
+            ticket_no = ticket_no + 1
+        ticket_no = str(ticket_no)
         if len(ticket_no) == 1:
             ticket_no = 'TCK' + str_timestamp + '-000' + ticket_no
         elif len(ticket_no) == 2:
@@ -64,7 +71,7 @@ class BasicModel:
         return attack_no
 
     def _get_subject(self, log):
-        ticket_no = self._get_ticket_no(log)
+        ticket_no = self._get_ticket(log)
            
         subject_main = '[보안 관제]'
         site = WEB_SITE['ip']
@@ -133,7 +140,7 @@ class BasicModel:
             return False
     
     def _post(self, log):
-        if self.model == 'fail2ban_logs':
+        if self.need_notice:
             result = self.collection.find_one({'timestamp': log['timestamp'], 'ip': log['ip']})
             if not result:
                 self.collection.update_one({'timestamp': log['timestamp'], 'ip': log['ip']}, {'$set': log}, upsert=True)

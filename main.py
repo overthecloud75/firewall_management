@@ -5,15 +5,15 @@ from logging.config import dictConfig
 from flask import Flask
 from datetime import datetime
 
-from models import NginxModel, AuthModel, Fail2BanModel
+from models import LogModel
 from utils import Analyze
 from config import BASE_DIR, LOG_DIR
 
 def read_log():
 
-    nginx_model = NginxModel()
-    auth_model = AuthModel()
-    fail2ban_model = Fail2BanModel()
+    nginx_model = LogModel(model='nginx_logs')
+    auth_model = LogModel(model='auth_logs')
+    fail2ban_model = LogModel(model='fail2ban_logs', need_notice=True)
     analyze = Analyze()  
     while True:
         # timestamp를 refresh
