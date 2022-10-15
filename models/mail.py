@@ -36,7 +36,6 @@ def send_email(email_list=[], subject=None, body=None, include_cc=False, attache
         encode_base64(part)
         part.add_header('Content-Disposition', 'attachment; filename={}'.format(os.path.basename(attached_file)))
         mimemsg.attach(part)
-        os.remove(attached_file)
     try:
         connection = smtplib.SMTP(host=MAIL_SERVER['host'], port=MAIL_SERVER['port'])
         connection.starttls()

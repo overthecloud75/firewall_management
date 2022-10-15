@@ -57,6 +57,13 @@
     - 0.2.7 (db.py)
         unify
 
+22/10/15
+    - 0.2.8 (analyze.py)
+        nginx error log parsing
+
+    - 0.2.9 (db.py)
+        make EVIDENCE_DIR, save ticket 
+
 ToDoList
     - ticket management 
     - log monitoring 

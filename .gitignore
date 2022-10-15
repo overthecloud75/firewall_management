@@ -4,6 +4,7 @@ Lib
 __pycache__
 Scripts
 logs
+evidence
 mainconfig.py
 pyvenv.cfg
 pyodbc.pyi

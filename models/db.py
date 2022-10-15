@@ -6,7 +6,7 @@ import csv
 import os 
 
 from .mail import send_email 
-from config import USE_NOTICE_EMAIL, CSV_FILE_NAME, NGINX_ACCESS_LOG_KEYS, AUTH_LOG_KEYS
+from config import BASE_DIR, EVIDENCE_DIR, CSV_FILE_NAME, USE_NOTICE_EMAIL, NGINX_ACCESS_LOG_KEYS, AUTH_LOG_KEYS
 try:
     from mainconfig import MONITORING_SITE, WEB_SITE, FIREWALL_SITE, MANUAL_SITE, ANALYZE_SITE
 except:
@@ -70,20 +70,36 @@ class LogModel:
             attack_no = attack_no + 1
         return attack_no
 
+    def _post_ticket(log, ticket_no, attack_no):
+        ticket_info = log
+        ticket_info['model'] = self.model
+        ticket_info['ticket'] = ticket_no
+        ticket_info['attack_no'] = attack_no
+        db['tickets'].update_one({'$set': ticket_info}, upsert=True)
+
     def _get_subject(self, log):
+        '''
+            1. get ticket_no 
+            2. make evidence file
+            3. get attack_no 
+            4. save ticket info 
+        '''
+
         ticket_no = self._get_ticket(log)
            
         subject_main = '[보안 관제]'
         site = WEB_SITE['ip']
         attack_no = 0
 
-        with open(CSV_FILE_NAME, 'w', encoding='utf-8', newline='') as csv_file:
+        csv_file_name = os.path.join(BASE_DIR, EVIDENCE_DIR, tickent_no + '_' + CSV_FILE_NAME)
+
+        with open(csv_file_name, 'w', encoding='utf-8', newline='') as csv_file:
             wr = csv.writer(csv_file)
             if 'origin' in log:
                 if log['origin'] == '[modesecurity]':
                     subject_main = '[{} : {} 보안 관제] '.format(ticket_no, 'WEB')
                     site = WEB_SITE['domain']
-                    results = db['nginx_log'].find({'ip': log['ip']}).sort('timestamp', -1)
+                    results = db['nginx_access_logs'].find({'ip': log['ip']}).sort('timestamp', -1)
                     attack_no = self._write_csv_and_get_attack_no(results, wr, NGINX_ACCESS_LOG_KEYS, attack_no)
                 else:
                     subject_main = '[{} : {} 보안 관제] '.format(ticket_no, 'AUTH')  
@@ -91,9 +107,9 @@ class LogModel:
                     attack_no = self._write_csv_and_get_attack_no(results, wr, AUTH_LOG_KEYS, attack_no)
 
         subject = subject_main + '공격자 ip: ' + log['ip']
-        if attack_no == 0 and os.path.isfile(CSV_FILE_NAME):
-            os.remove(CSV_FILE_NAME)
-        return subject, site, attack_no
+
+        self._post_ticket(log, ticket_no, attack_no)
+        return subject, site, attack_no, csv_file_name
 
     def _notice_email(self, log, signature=''):
         # check recipents  
@@ -106,7 +122,7 @@ class LogModel:
             # https://techexpert.tips/ko/python-ko/파이썬-office-365를-사용하여-이메일-보내기
             # https://nowonbun.tistory.com/684 (참조자)
 
-            subject, site, attack_no = self._get_subject(log)
+            subject, site, attack_no, csv_file_name = self._get_subject(log)
             str_time = log['timestamp'].strftime('%y-%m-%d %H:%M:%S')
 
             body = '\n' \
@@ -130,11 +146,11 @@ class LogModel:
                 '\n' \
                 'Analyze the attack ip \n' \
                 ' -> {} \n' \
-                .format(site, site, str_time, log['ip'], attack_no, log['geo_ip'], signature, CSV_FILE_NAME, CSV_FILE_NAME, MONITORING_SITE, FIREWALL_SITE, MANUAL_SITE, ANALYZE_SITE + log['ip'])
+                .format(site, site, str_time, log['ip'], attack_no, log['geo_ip'], signature, csv_file_name, csv_file_name, MONITORING_SITE, FIREWALL_SITE, MANUAL_SITE, ANALYZE_SITE + log['ip'])
 
             self.logger.info('email: {}'.format(subject))
             print('email: {}'.format(subject))
-            sent = send_email(email_list=email_list, subject=subject, body=body, attached_file=CSV_FILE_NAME)
+            sent = send_email(email_list=email_list, subject=subject, body=body, attached_file=csv_file_name)
             return sent 
         else:
             return False
@@ -159,7 +175,6 @@ class LogModel:
     def many_post(self, log_list):
         log_list = reversed(log_list)
         for log in log_list:
-            self._post(log)
             self.logger.info('{}: {}'.format(self.model, log))
-            print(self.model, log)
+            self._post(log)
             

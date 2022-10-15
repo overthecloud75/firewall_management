@@ -3,7 +3,7 @@ import re
 import csv
 import logging
 
-from config import FAIL2BAN_LOG_DIR, NGINX_ACCESS_LOG_DIR, AUTH_LOG_DIR, IPV4_FILE, AUTH_LOG_FILTERING
+from config import FAIL2BAN_LOG_DIR, NGINX_ACCESS_LOG_DIR, NGINX_ERROR_LOG_DIR, AUTH_LOG_DIR, IPV4_FILE, AUTH_LOG_FILTERING
     
 class Analyze:
 
@@ -11,7 +11,6 @@ class Analyze:
         self.logger = logging.getLogger(__name__)
         self.logger.info('Analyze Start')
 
-        
         if unit == 'm':
             self.interval = interval * 60
         else:
@@ -20,7 +19,6 @@ class Analyze:
         self.timestamp = datetime.now()
         self.previous_timestamp  = self.timestamp - timedelta(seconds=self.interval)
 
-        self.obj = re.compile(r'(?P<ip>.*?)- - \[(?P<time>.*?)\] "(?P<request>.*?)" (?P<status>.*?) (?P<bytes>.*?) "(?P<referer>.*?)" "(?P<ua>.*?)"')
         self.country_list = []
         self.s_ip_list = []
         self.f_ip_list = []
@@ -33,14 +31,14 @@ class Analyze:
                     self.s_ip_list.append(line[2].split('.'))
                     self.f_ip_list.append(line[3].split('.'))
 
-    def _parse_nginx_log(self, line):
+    def _parse_nginx_access_log(self, line):
 
         # https://pythonmana.com/2021/04/20210417005158969I.html
-        result = self.obj.match(line)
+        LOG_REGEX = re.compile(r'(?P<ip>.*?)- - \[(?P<time>.*?)\] "(?P<request>.*?)" (?P<status>.*?) (?P<bytes>.*?) "(?P<referer>.*?)" "(?P<ua>.*?)"')
+        result = LOG_REGEX.match(line)
 
         ip = result.group('ip')[:-1]
-        timestamp = result.group('time')[:-6]
-        datetime_timestamp = datetime.strptime(timestamp, '%d/%b/%Y:%H:%M:%S')
+        datetime_timestamp = datetime.strptime(result.group('time')[:-6], '%d/%b/%Y:%H:%M:%S')
 
         request = result.group('request')
         request_list = request.split(' ')
@@ -65,6 +63,51 @@ class Analyze:
 
         nginx_log_dict = {'timestamp': datetime_timestamp, 'ip': ip, 'method': method, 'url': url, 
                             'http_version': http_version, 'status': status, 'size': size, 'referer': referer, 'user_agent': user_agent, 'geo_ip': geo_ip}
+
+        return nginx_log_dict
+
+    def _parse_nginx_error_log(self, line):
+
+        # https://github.com/madsmtm/nginx-error-log/blob/master/nginx_error_log/_utils.py
+        LOG_REGEX = re.compile(
+            r"^(?P<time>[\d/: ]{19}) "
+            r"\[(?P<level>[a-z]+)\] "
+            r"(?P<pid>\d+)#(?P<tid>\d+): "
+            r"(\*(?P<cid>\d+) )?"
+            r"(?P<message>.*)",
+            re.DOTALL,
+        )
+        result = LOG_REGEX.match(line)
+        datetime_timestamp = datetime.strptime(result.group('time'), '%Y/%m/%d %H:%M:%S')
+        level = result.group('level')
+        message_group = result.group('message')
+        nginx_log_dict = {'timestamp': datetime_timestamp, 'level': level}
+
+        message_list = message_group.split(', ')
+        for i, message in enumerate(message_list):
+            message = message.replace('"', '')   
+            if message.endswith('\n'):
+                message = message.replace('\n', '')
+            if i == 0:
+                nginx_log_dict['reason'] = message
+            if message.startswith('client: '):
+                nginx_log_dict['ip'] = message.replace('client: ', '')
+            if message.startswith('server: '):
+                nginx_log_dict['server'] = message.replace('server: ', '')
+            if message.startswith('request: '):
+                request = message.replace('request: ', '')
+                request_list = request.split(' ')
+                try:
+                    method = request_list[0]
+                    url = request_list[1]
+                    http_version = request_list[2]
+                except:
+                    method = '-'
+                    url = request
+                    http_version = '-'
+                nginx_log_dict['method'] = method
+                nginx_log_dict['url'] = url
+                nginx_log_dict['http_version'] = http_version
 
         return nginx_log_dict
 
@@ -101,7 +144,10 @@ class Analyze:
         except Exception as e:
             self.logger.error('{}: {}'.format(e, new_line_list))
             geo_ip = 'un'
-        auth_log_dict = {'timestamp': datetime_timestamp, 'client': new_line_list[3], 'id': new_line_list[5], 'ip': ip, 's_port': int(new_line_list[7]), 'geo_ip': geo_ip}
+        if len(new_line_list) == 8: # id가 없는 경우
+            auth_log_dict = {'timestamp': datetime_timestamp, 'client': new_line_list[3], 'id': '', 'ip': ip, 's_port': int(new_line_list[6]), 'geo_ip': geo_ip}
+        else:
+            auth_log_dict = {'timestamp': datetime_timestamp, 'client': new_line_list[3], 'id': new_line_list[5], 'ip': ip, 's_port': int(new_line_list[7]), 'geo_ip': geo_ip}
         return auth_log_dict
 
     def _find_country(self, ip):
@@ -169,8 +215,7 @@ class Analyze:
 
                 if datetime_timestamp < self.previous_timestamp:
                     break
-
-                if 'Ban' in line_list:
+                if 'Ban' in line_list and 'Restore' not in line_list:
                     ban_dict = {}
                     new_line_list = []
                     for i, value in enumerate(line_list):
@@ -194,16 +239,28 @@ class Analyze:
 
         nginx_log_list = []
         with open(NGINX_ACCESS_LOG_DIR, 'r', encoding='utf-8') as f:
-
             reverse_lines = f.readlines()[::-1]
-            for i, line in enumerate(reverse_lines):
+            for line in reverse_lines:
                 try:
-                    nginx_log_dict = self._parse_nginx_log(line)
+                    nginx_log_dict = self._parse_nginx_access_log(line)
                     if nginx_log_dict['timestamp'] < self.previous_timestamp:
                         break
-                
-                    if nginx_log_dict['status'] in [400, 403, 404]:
-                        nginx_log_list.append(nginx_log_dict)
+                    nginx_log_list.append(nginx_log_dict)
+                except Exception as e:
+                    self.logger.error('{}: {}'.format(e, line))
+        return nginx_log_list
+    
+    def read_nginx_error_log(self):
+
+        nginx_log_list = []
+        with open(NGINX_ERROR_LOG_DIR, 'r', encoding='utf-8') as f:
+            reverse_lines = f.readlines()[::-1]
+            for line in reverse_lines:
+                try:
+                    nginx_log_dict = self._parse_nginx_error_log(line)
+                    if nginx_log_dict['timestamp'] < self.previous_timestamp:
+                        break
+                    nginx_log_list.append(nginx_log_dict)
                 except Exception as e:
                     self.logger.error('{}: {}'.format(e, line))
         return nginx_log_list

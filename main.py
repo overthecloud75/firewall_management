@@ -11,7 +11,8 @@ from config import BASE_DIR, LOG_DIR
 
 def read_log():
 
-    nginx_model = LogModel(model='nginx_logs')
+    nginx_access_model = LogModel(model='nginx_access_logs')
+    nginx_error_model = LogModel(model='nginx_error_logs')
     auth_model = LogModel(model='auth_logs')
     fail2ban_model = LogModel(model='fail2ban_logs', need_notice=True)
     analyze = Analyze()  
@@ -20,13 +21,17 @@ def read_log():
         analyze.timestamp = datetime.now()
         print(analyze.timestamp)
         ban_list = analyze.read_fail2ban_log()
-        nginx_log_list = analyze.read_nginx_access_log()
+        nginx_access_log_list = analyze.read_nginx_access_log()
+        nginx_error_log_list = analyze.read_nginx_error_log()
         auth_log_list = analyze.read_auth_log()
-        analyze.previous_timestamp = analyze.timestamp
 
-        nginx_model.many_post(nginx_log_list)
+        nginx_access_model.many_post(nginx_access_log_list)
+        nginx_error_model.many_post(nginx_error_log_list)
         auth_model.many_post(auth_log_list)
         fail2ban_model.many_post(ban_list)
+
+        analyze.previous_timestamp = analyze.timestamp
+
         time.sleep(300)
         
 def create_app():
