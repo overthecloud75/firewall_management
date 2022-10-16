@@ -50,7 +50,6 @@ IPV4_FILE = 'ipv4.csv'
 # email Setting
 USE_NOTICE_EMAIL = True
 
-
 # log_keys
 NGINX_ACCESS_LOG_KEYS = ['timestamp', 'ip', 'method', 'url', 'http_version', 'status', 'size', 'referer', 'user_agent', 'geo_ip']
 AUTH_LOG_KEYS = ['timestamp', 'client', 'ip', 'id', 's_port', 'geo_ip']

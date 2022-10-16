@@ -7,7 +7,7 @@ from datetime import datetime
 
 from models import LogModel
 from utils import Analyze
-from config import BASE_DIR, LOG_DIR
+from configs import BASE_DIR, LOG_DIR
 
 def read_log():
 

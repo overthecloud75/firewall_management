@@ -3,7 +3,7 @@ import os
 import ipaddress
 import logging
 
-from config import FW_CHAINS
+from configs import FW_CHAINS
 
 '''
 -P INPUT ACCEPT
@@ -97,6 +97,8 @@ class Iptables:
                         filter['message'] = ''
                         filter['ip'] = filter['src'].split('/')[0]
                         filter['ip_class'] = '/' + filter['src'].split('/')[1]
+                        filter['protocol'] = target_def[chain]['protocol']
+                        filter['port'] = target_def[chain]['multiport']['dports']
                         del filter['counters']
                         if 'REJECT' in filter['target']:
                             filter['block'] = 'REJECT'
@@ -106,6 +108,6 @@ class Iptables:
                         elif 'DROP' in filter['target']:
                             filter['block'] = 'DROP'
                         filter_list.append(filter)
-        return target_def, filter_list
+        return filter_list
 
 

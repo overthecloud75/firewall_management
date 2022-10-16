@@ -6,20 +6,7 @@ from email.utils import COMMASPACE
 from email.encoders import encode_base64
 import os 
 
-try:
-    from mainconfig import ACCOUNT, MAIL_SERVER
-except Exception as e:
-    ACCOUNT = {
-        'email': 'test@test.co.kr',
-        'password': '*******',
-    }
-    MAIL_SERVER = {'host': 'smtp.office365.com', 'port': 587}
-try:
-    from mainconfig import CC
-except Exception as e:
-    # CC: cc email when notice email
-    CC = None
-    # CC = 'test@test.co.kr'
+from configs import ACCOUNT, MAIL_SERVER, CC
 
 def send_email(email_list=[], subject=None, body=None, include_cc=False, attached_file=None):
     mimemsg = MIMEMultipart()

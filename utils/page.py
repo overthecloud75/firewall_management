@@ -1,4 +1,4 @@
-from config import PAGE_DEFAULT
+from configs import PAGE_DEFAULT
 
 class Page:
     def __init__(self, page):
@@ -7,7 +7,7 @@ class Page:
         self.screen_pages = PAGE_DEFAULT['screen_pages']
         self.offset = (page - 1) * self.per_page
 
-    def paginate(self, data_list, count=None):
+    def paginate(self, data_list, count=None, collection=None):
         if count:
             pass
         else:
@@ -15,7 +15,7 @@ class Page:
                 count = len(data_list)
                 data_list = data_list[self.offset:self.offset + self.per_page]
             else:
-                count = data_list.count()
+                count = collection.count_documents({})
                 data_list = data_list.limit(self.per_page).skip(self.offset)
         if count != 0:
             if count % self.per_page == 0:

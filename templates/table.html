@@ -1,0 +1,31 @@
+<div class="container my-3">
+    <button type="button" class="btn btn-primary my-3" id="update">
+        {{ button_title }}
+    </button>
+    <table class="table">
+    {% if data_list %}
+        <thead>
+            <tr class="table-dark">
+                <th>번호</th>
+                {% for column in column_header %}
+                <th>{{ column.header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in data_list %}
+            <tr>
+                <td onClick='handleClick(event, {{ data }}, {{ loop.index0 }})'>{{ paging.offset + loop.index0 + 1}}</td>
+                {% for column in column_header %}
+                <td>{{ data[column['accessor']] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    {% else %}
+        <tr>
+            <td colspan="3">{{ no_info }}</td>
+        </tr>
+    {% endif %}
+    </table>
+</div>

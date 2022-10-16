@@ -1,45 +1,6 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-
-<div class="container my-3">
-    <button type="button" class="btn btn-primary my-3" id="update">
-        firewall update
-    </button>
-    <table class="table">
-    {% if data_list %}
-        <thead>
-            <tr class="table-dark">
-                <th>번호</th>
-                <th>이름</th>
-                <th>ip</th>
-                <th>class</th>
-                <th>protocol</th>
-                <th>port</th>
-                <th>block</th>
-                <th>message</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for data in data_list %}
-            <tr>
-                <td onClick='handleClick(event, {{ data }}, {{ loop.index0 }})'>{{ paging.offset + loop.index0 + 1}}</td>
-                <td>{{ data.name }}</td>
-                <td>{{ data.ip }}</td>
-                <td>{{ data.ip_class }}</td>
-                <td>{{ target_def[data.name].protocol }}</td>
-                <td>{{ target_def[data.name].multiport.dports }}</td>
-                <td>{{ data.block }}</td>
-                <td>{{ data.message }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    {% else %}
-        <tr>
-            <td colspan="3">firewall 정보가 없습니다.</td>
-        </tr>
-    {% endif %}
-    </table>
-</div>
+{% include 'table.html' %}
 {% include 'paging.html' %}
   
 <!-- Modal -->
@@ -53,7 +14,7 @@
             <div class="modal-body">
                 <form method="post" class="fw-form" id="fw-form">
                     {{ form.csrf_token }}
-                    {% include "form_errors.html" %}
+                    {% include 'form_errors.html' %}
                     <div class="form-group my-3">
                         <input type="hidden" class="form-control" name="no" id="no" value="{{ '' }}">
                     </div>
@@ -137,7 +98,7 @@ $("#btn-delete").click(function(e) {
     formData.append('port', $('#port').val());
     formData.append('block', $('#block').val());
     $.ajax({
-        url: "/firewall/api/delete",
+        url: "/manage/api/delete",
         method: "POST",
         data: formData,
         contentType: false,
