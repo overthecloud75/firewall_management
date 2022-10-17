@@ -24,7 +24,7 @@ class LogModel(BasicModel):
         s_timestamp = datetime(timestamp.year, timestamp.month, timestamp.day)
         f_timestamp = s_timestamp + timedelta(days=1)
         ticket_no = 0
-        results = db['fail2ban_logs'].find({'timestamp' : {'$gte': s_timestamp, '$lt': f_timestamp}})
+        results = self.db['fail2ban_logs'].find({'timestamp' : {'$gte': s_timestamp, '$lt': f_timestamp}})
         for result in results:
             ticket_no = ticket_no + 1
         ticket_no = str(ticket_no)
@@ -51,12 +51,12 @@ class LogModel(BasicModel):
             attack_no = attack_no + 1
         return attack_no
 
-    def _post_ticket(log, ticket_no, attack_no):
+    def _post_ticket(self, log, ticket_no, attack_no):
         ticket_info = log
         ticket_info['model'] = self.model
         ticket_info['ticket'] = ticket_no
         ticket_info['attack_no'] = attack_no
-        db['tickets'].update_one({'$set': ticket_info}, upsert=True)
+        self.db['tickets'].insert_one(ticket_info)
 
     def _get_subject(self, log):
         '''
@@ -65,14 +65,13 @@ class LogModel(BasicModel):
             3. get attack_no 
             4. save ticket info 
         '''
-
         ticket_no = self._get_ticket(log)
            
         subject_main = '[보안 관제]'
         site = WEB_SITE['ip']
         attack_no = 0
 
-        csv_file_name = os.path.join(BASE_DIR, EVIDENCE_DIR, tickent_no + '_' + CSV_FILE_NAME)
+        csv_file_name = os.path.join(BASE_DIR, EVIDENCE_DIR, ticket_no + '_' + CSV_FILE_NAME)
 
         with open(csv_file_name, 'w', encoding='utf-8', newline='') as csv_file:
             wr = csv.writer(csv_file)
@@ -80,11 +79,11 @@ class LogModel(BasicModel):
                 if log['origin'] == '[modesecurity]':
                     subject_main = '[{} : {} 보안 관제] '.format(ticket_no, 'WEB')
                     site = WEB_SITE['domain']
-                    results = db['nginx_access_logs'].find({'ip': log['ip']}).sort('timestamp', -1)
+                    results = self.db['nginx_access_logs'].find({'ip': log['ip']}).sort('timestamp', -1)
                     attack_no = self._write_csv_and_get_attack_no(results, wr, NGINX_ACCESS_LOG_KEYS, attack_no)
                 else:
                     subject_main = '[{} : {} 보안 관제] '.format(ticket_no, 'AUTH')  
-                    results = db['auth_logs'].find({'ip': log['ip']}).sort('timestamp', -1)
+                    results = self.db['auth_logs'].find({'ip': log['ip']}).sort('timestamp', -1)
                     attack_no = self._write_csv_and_get_attack_no(results, wr, AUTH_LOG_KEYS, attack_no)
 
         subject = subject_main + '공격자 ip: ' + log['ip']
@@ -94,7 +93,7 @@ class LogModel(BasicModel):
 
     def _notice_email(self, log, signature=''):
         # check recipents  
-        security_users = db['security_users'].find()
+        security_users = self.db['security_users'].find()
         email_list = []
         for user in security_users:
             email_list.append(user['email'])
@@ -139,10 +138,16 @@ class LogModel(BasicModel):
     def _post(self, log):
         if 'ip' in log:
             if self.need_notice:
-                result = self.collection.find_one({'timestamp': log['timestamp'], 'ip': log['ip']})
-                if not result:
-                    self.collection.update_one({'timestamp': log['timestamp'], 'ip': log['ip']}, {'$set': log}, upsert=True)
-                    self._notice_email(log)
+                if 'url' in log:
+                    result = self.collection.find_one({'timestamp': log['timestamp'], 'ip': log['ip'], 'url': log['url']})
+                    if not result:
+                        self.collection.update_one({'timestamp': log['timestamp'], 'ip': log['ip'], 'url': log['url']}, {'$set': log}, upsert=True)
+                        self._notice_email(log)
+                else:
+                    result = self.collection.find_one({'timestamp': log['timestamp'], 'ip': log['ip']})
+                    if not result:
+                        self.collection.update_one({'timestamp': log['timestamp'], 'ip': log['ip']}, {'$set': log}, upsert=True)
+                        self._notice_email(log)
             else:
                 self.collection.update_one({'timestamp': log['timestamp'], 'ip': log['ip']}, {'$set': log}, upsert=True)
 

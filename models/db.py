@@ -17,7 +17,8 @@ db.nginx_error_logs.create_index([('timestamp', 1), ('ip', 1)])
 class BasicModel:
     def __init__(self, model):
         self.model = model 
-        self.collection = db[self.model]
+        self.db = db
+        self.collection = self.db[self.model]
 
     def get_by_id(self, _id=''):
         try:

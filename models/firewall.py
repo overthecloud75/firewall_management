@@ -14,6 +14,7 @@ class Firewall:
         return paging, data_list
 
     def post(self, request_data={}):
+        print(request_data)
         ip = request_data['ip']
         ip_class = request_data['ip_class']
         protocol = request_data['protocol']

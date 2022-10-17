@@ -33,7 +33,8 @@ class Iptables:
             self.logger.info('IP address {} is valid. The object returned is {}'.format(address, ip))
         except ValueError:
             self.logger.info('IP address {} is not valid'.format(address)) 
-        return False
+            result = False
+        return result
 
     # https://gist.github.com/zhangchunlin/1513742/89a38864b41e002e4a6600a946c076ad0fe6f7bb
     def _do_cmd(self, cmd):
