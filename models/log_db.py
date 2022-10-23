@@ -13,10 +13,9 @@ class LogModel(BasicModel):
     def __init__(self, model='fail2ban_logs', need_notice=False):
         self.logger = logging.getLogger(__name__)
         super().__init__(model=model)
-        
-        self.need_notice = need_notice
 
         self.logger.info('{} start'.format(self.model))
+        self.need_notice = need_notice
 
     def _get_ticket(self, log):
         timestamp = log['timestamp']

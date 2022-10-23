@@ -16,7 +16,15 @@ class Page:
                 data_list = data_list[self.offset:self.offset + self.per_page]
             else:
                 count = collection.count_documents({})
-                data_list = data_list.limit(self.per_page).skip(self.offset)
+                collection_data_list = data_list.limit(self.per_page).skip(self.offset)
+                data_list = []
+                for data in collection_data_list:
+                    data['_id'] = str(data['_id'])
+                    if 'timestamp' in data:
+                        data['timestamp'] = data['timestamp'].strftime('%Y-%m-%d  %H:%M:%S')
+                    if 'fix_timestamp' in data:
+                        data['fix_timestamp'] = data['fix_timestamp'].strftime('%Y-%m-%d  %H:%M:%S')
+                    data_list.append(data)
         if count != 0:
             if count % self.per_page == 0:
                 total_pages = int(count / self.per_page)

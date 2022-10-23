@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 
 from models import Firewall, TicketModel
-from form import RuleUpdateForm
-from configs import FIREWALL_STATUS, FIREWALL_COLUMN_HEADER
+from forms import RuleUpdateForm, TicketUpdateForm
+from configs import FIREWALL_COLUMN_HEADER, TICKET_COLUMN_HEADER
 
 # blueprint
 bp = Blueprint('main', __name__, url_prefix='/manage')
@@ -14,45 +14,42 @@ def index():
 @bp.route('/firewall', methods=['GET', 'POST'])
 def firewall():
     page = request.args.get('page', default=1)
-    data = {}
 
     management = Firewall()
     form = RuleUpdateForm()
     if request.method == 'POST' and form.validate_on_submit():
         request_data = {'ip': form.ip.data, 'ip_class':form.ip_class.data, 'protocol': form.protocol.data, 'port': form.port.data, 'block': form.block.data}
         management.post(request_data=request_data)
-        data = request_data
 
-    firewall_status = FIREWALL_STATUS
     column_header = FIREWALL_COLUMN_HEADER
-    button_title = 'Firewall Update'
-    no_info = 'firewall 정보가 없습니다.'
+    update_title = 'Firewall'
 
     paging, data_list = management.get(page=page)
     return render_template('pages/firewall.html', **locals())
 
-@bp.route('/ticket', methods=['GET'])
+@bp.route('/ticket', methods=['GET', 'POST'])
 def ticket():
     page = request.args.get('page', default=1)
-    data = {}
 
     management = TicketModel()
-    form = RuleUpdateForm()
+    form = TicketUpdateForm()
+    if request.method == 'POST':
+        request_data = {'_id': form.id.data, 'fix':form.fix.data}
+        management.post(request_data=request_data)
 
-    firewall_status = FIREWALL_STATUS
-    column_header = FIREWALL_COLUMN_HEADER
-    button_title = 'Ticket Update'
-    no_info = 'ticket 정보가 없습니다.'
+    column_header = TICKET_COLUMN_HEADER
+    update_title = 'Ticket'
 
     paging, data_list = management.get(page=page)
     return render_template('pages/ticket.html', **locals())
 
 @bp.route('/api/delete', methods=['POST'])
-def api():
+def delete_firewall_rule():
     form = RuleUpdateForm()
     if form.validate_on_submit():
         request_data = {'ip': form.ip.data, 'ip_class':form.ip_class.data, 'protocol': form.protocol.data, 'port': form.port.data, 'block': form.block.data}
-        firewall_management.delete(request_data=request_data)
+        management = Firewall()
+        management.delete(request_data=request_data)
         return 'validate', 200
     else:
         return 'not validate', 400

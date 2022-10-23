@@ -3,7 +3,7 @@ import os
 import ipaddress
 import logging
 
-from configs import FW_CHAINS
+from configs import FW_CHAINS, DPORT_TO_PORT
 
 '''
 -P INPUT ACCEPT
@@ -22,8 +22,13 @@ from configs import FW_CHAINS
 
 class Iptables:
     def __init__(self):
+        '''
+            when start, if chain in config not exist in chains, enroll the chain.  
+        '''
         self.logger = logging.getLogger(__name__)
         self.logger.info('Iptables Start')
+
+        self.enroll_chains()
 
     # https://codefather.tech/blog/validate-ip-address-python/
     def _validate_ip_address(self, address):
@@ -40,22 +45,27 @@ class Iptables:
     def _do_cmd(self, cmd):
         os.system(cmd)
 
-    def _enrole_chain(self, chain):
+    def _enroll_chain(self, chain):
         cmd = 'iptables -N {chain}'.format(chain=chain)
         self._do_cmd(cmd)
 
     def _target_role(self, port, chain, protocol='tcp'):
-        dports = '80,443'
-        if port == 'ssh': 
-            dports = '22'
-        cmd = 'iptables -A INPUT -p {protocol} -m multiport --dports {dports} -j {chain}'.format(protocol=protocol, dports=dports, chain=chain)
+        if port == 'all':
+            cmd = 'iptables -A INPUT -p {protocol} -j {chain}'.format(protocol=protocol, chain=chain)
+            dports = 'all'
+        else:
+            if port == 'ssh': 
+                dports = '22'
+            else:
+                dports = '80,443'
+            cmd = 'iptables -A INPUT -p {protocol} -m multiport --dports {dports} -j {chain}'.format(protocol=protocol, dports=dports, chain=chain)
         self._do_cmd(cmd)
 
     def enroll_chains(self):
         chains = iptc.easy.get_chains('filter')
         for port, chain in FW_CHAINS.items():
             if not chain in chains:
-                self._enrole_chain(chain)
+                self._enroll_chain(chain)
                 self._target_role(port, chain)
 
     def post_rule(self, ip, ip_class='/32', protocol='tcp', port='all', block='DROP'):
@@ -99,7 +109,10 @@ class Iptables:
                         filter['ip'] = filter['src'].split('/')[0]
                         filter['ip_class'] = '/' + filter['src'].split('/')[1]
                         filter['protocol'] = target_def[chain]['protocol']
-                        filter['port'] = target_def[chain]['multiport']['dports']
+                        if 'multiport' in target_def[chain]:
+                            filter['port'] = DPORT_TO_PORT[target_def[chain]['multiport']['dports']]
+                        else:
+                            filter['port'] = 'all'
                         del filter['counters']
                         if 'REJECT' in filter['target']:
                             filter['block'] = 'REJECT'

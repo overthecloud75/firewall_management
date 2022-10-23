@@ -30,3 +30,40 @@ FIREWALL_COLUMN_HEADER = [
         'header': 'Message',
     },
 ]
+
+# title_list
+
+TICKET_COLUMN_HEADER = [
+    {
+        'accessor': 'timestamp',
+        'header': 'Occurance',
+    },
+    {
+        'accessor': 'ticket',
+        'header': 'Ticket',
+    },
+    {
+        'accessor': 'ip',
+        'header': 'Attacker IP',
+    },
+    {
+        'accessor': 'geo_ip',
+        'header': 'Country',
+    },
+    {
+        'accessor': 'attack_no',
+        'header': 'Attack NO',
+    },
+    {
+        'accessor': 'origin',
+        'header': 'Origin'
+    },
+    {
+        'accessor': 'fix',
+        'header': 'Action'
+    },
+    {
+        'accessor': 'fix_timestamp',
+        'header': 'Action Time'
+    }
+]

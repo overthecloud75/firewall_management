@@ -19,6 +19,7 @@ class BasicModel:
         self.model = model 
         self.db = db
         self.collection = self.db[self.model]
+        
 
     def get_by_id(self, _id=''):
         try:
@@ -27,3 +28,11 @@ class BasicModel:
             data = None
             print(e)
         return data
+
+    def post_by_id(self, request_data={}):
+        try:
+            _id = request_data['_id']
+            del request_data['_id']
+            self.collection.update_one({'_id': ObjectId(_id)}, {'$set': request_data}, upsert=True)
+        except Exception as e:
+            print(e)

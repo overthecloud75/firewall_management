@@ -69,7 +69,7 @@
         change path from firewall to manage
         
     - 0.3.1
-        seperate table.html from pages
+        separate table.html from pages
 
     - 0.3.2
         configs folder
@@ -80,6 +80,13 @@
 
     - 0.3.4 (main_view.py)
         ticket 
+
+22/10/23
+    - 0.3.5 (forms.py)
+        wt-forms SELECT_FIELD
+
+    - 0.3.6 (ticket.html)
+        ticket update 
 
 ToDoList
     - ticket management 

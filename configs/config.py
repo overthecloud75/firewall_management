@@ -26,18 +26,23 @@ PAGE_DEFAULT = {
 }
 
 # firewall_status 
+# chains 
 FIREWALL_STATUS = {
     'ip_class': ['/32', '/24'],
     'protocol': ['tcp', 'udp', 'all'],
-    'port': ['ssh', 'web', 'all'],
+    'port': ['web', 'ssh', 'all'],
     'block': ['DROP', 'REJECT', 'ACCEPT']
 }
 
-# chains 
 FW_CHAINS = {
-    'ssh': 'FW-ssh', 
     'web': 'FW-web',
+    'ssh': 'FW-ssh', 
     'all': 'FW-all',
+}
+
+DPORT_TO_PORT = {
+    '22': 'ssh',
+    '80,443' : 'web'
 }
 
 # Fail2Ban, Nginx, Auth log 
