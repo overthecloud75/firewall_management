@@ -48,7 +48,6 @@ def history(ticket):
     page = request.args.get('page', default=1)
 
     management = AccessModel()
-    form = TicketUpdateForm()
     column_header = ACCESS_COLUMN_HEADER
     update_title = 'Access'
 

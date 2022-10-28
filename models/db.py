@@ -36,5 +36,9 @@ class BasicModel:
             print(e)
 
     def _get_by_ip(self, ip):
-        return self.collection.find({'ip': ip}).sort('timestamp', -1)
+        data_list = []
+        results = self.collection.find({'ip': ip}).sort('timestamp', -1)
+        for result in results:
+            data_list.append(result)
+        return data_list 
 

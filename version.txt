@@ -95,6 +95,8 @@
 22/10/28
     - 0.3.7 (main_view.py)
         history(ticket)
+    - 0.3.8 (modal.html)
+        separate modal.html from table.html
 
 ToDoList
     - log monitoring 
