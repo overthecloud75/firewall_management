@@ -13,14 +13,12 @@ db.auth_logs.create_index([('timestamp', 1), ('ip', 1)])
 db.nginx_access_logs.create_index([('timestamp', 1), ('ip', 1)])
 db.nginx_error_logs.create_index([('timestamp', 1), ('ip', 1)])
 
-
 class BasicModel:
     def __init__(self, model):
         self.model = model 
         self.db = db
         self.collection = self.db[self.model]
         
-
     def get_by_id(self, _id=''):
         try:
             data = self.collection.find_one({'_id': ObjectId(_id)})
@@ -36,3 +34,7 @@ class BasicModel:
             self.collection.update_one({'_id': ObjectId(_id)}, {'$set': request_data}, upsert=True)
         except Exception as e:
             print(e)
+
+    def _get_by_ip(self, ip):
+        return self.collection.find({'ip': ip}).sort('timestamp', -1)
+

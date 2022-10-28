@@ -8,18 +8,24 @@
     {% if data_list %}
         <thead>
             <tr class="table-dark">
-                <th class="text-center">번호</th>
+                <th class="text-center align-middle">번호</th>
                 {% for column in column_header %}
-                <th class="text-center">{{ column.header }}</th>
+                <th class="text-center align-middle">{{ column.header }}</th>
                 {% endfor %}
             </tr>
         </thead>
         <tbody>
             {% for data in data_list %}
             <tr>
-                <td class="text-center" onClick='handleClick(event, {{ data }}, {{ loop.index0 }})'>{{ paging.offset + loop.index0 + 1}}</td>
+                <td class="text-center align-middle" onClick='handleClick(event, {{ data }}, {{ loop.index0 }})'>{{ paging.offset + loop.index0 + 1}}</td>
                 {% for column in column_header %}
-                <td class="text-center">{{ data[column['accessor']] }}</td>
+                {% if column['accessor'] == 'ip'%}
+                <td class="text-center align-middle"><a href="{{ 'https://www.abuseipdb.com/check/' + data[column['accessor']] }}" target="_blank">{{ data[column['accessor']] }}</a></td>
+                {% elif column['accessor'] == 'ticket' %}
+                <td class="text-center align-middle"><a href="{{ url_for('main.history', ticket=data[column['accessor']]) }}">{{ data[column['accessor']] }}</a></td>
+                {% else %}
+                <td class="text-center align-middle">{{ data[column['accessor']] }}</td>
+                {% endif %}
                 {% endfor %}
             </tr>
             {% endfor %}

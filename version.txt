@@ -88,6 +88,13 @@
     - 0.3.6 (ticket.html)
         ticket update 
 
+22/10/25
+    - 0.3.6 (table.html)
+        ip -> target="_blank""
+
+22/10/28
+    - 0.3.7 (main_view.py)
+        history(ticket)
+
 ToDoList
-    - ticket management 
     - log monitoring 

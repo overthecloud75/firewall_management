@@ -2,10 +2,13 @@ from configs import PAGE_DEFAULT
 
 class Page:
     def __init__(self, page):
-        self.page = page
+        try:
+            self.page = int(page)
+        except Exception as e:
+            self.page = 1
         self.per_page = PAGE_DEFAULT['per_page']
         self.screen_pages = PAGE_DEFAULT['screen_pages']
-        self.offset = (page - 1) * self.per_page
+        self.offset = (self.page - 1) * self.per_page
 
     def paginate(self, data_list, count=None, collection=None):
         if count:

@@ -9,7 +9,6 @@ from configs import BASE_DIR, EVIDENCE_DIR, CSV_FILE_NAME, USE_NOTICE_EMAIL, NGI
 from configs import MONITORING_SITE, WEB_SITE, FIREWALL_SITE, MANUAL_SITE, ANALYZE_SITE
 
 class LogModel(BasicModel):
-
     def __init__(self, model='fail2ban_logs', need_notice=False):
         self.logger = logging.getLogger(__name__)
         super().__init__(model=model)
@@ -155,3 +154,4 @@ class LogModel(BasicModel):
         for log in log_list:
             self.logger.info('{}: {}'.format(self.model, log))
             self._post(log)
+

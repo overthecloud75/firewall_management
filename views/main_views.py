@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 
-from models import Firewall, TicketModel
+from models import Firewall, TicketModel, AccessModel
 from forms import RuleUpdateForm, TicketUpdateForm
-from configs import FIREWALL_COLUMN_HEADER, TICKET_COLUMN_HEADER
+from configs import FIREWALL_COLUMN_HEADER, TICKET_COLUMN_HEADER, ACCESS_COLUMN_HEADER
 
 # blueprint
 bp = Blueprint('main', __name__, url_prefix='/manage')
@@ -42,6 +42,18 @@ def ticket():
 
     paging, data_list = management.get(page=page)
     return render_template('pages/ticket.html', **locals())
+
+@bp.route('/ticket/<ticket>', methods=['GET', 'POST'])
+def history(ticket):
+    page = request.args.get('page', default=1)
+
+    management = AccessModel()
+    form = TicketUpdateForm()
+    column_header = ACCESS_COLUMN_HEADER
+    update_title = 'Access'
+
+    paging, data_list = management.get_by_ticket(ticket, page=page)
+    return render_template('pages/access.html', **locals())
 
 @bp.route('/api/delete', methods=['POST'])
 def delete_firewall_rule():
