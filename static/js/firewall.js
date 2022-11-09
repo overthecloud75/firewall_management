@@ -5,7 +5,7 @@ $("#update").click(function(e) {
     document.getElementById("btn-save").style.display = "block";
     document.getElementById("btn-delete").style.display = "none";
 });
-function handleClick(event, data, index){
+function handleClick(data, index){
     $('#modalForm').modal('show'); 
     $('#no').val(index);
     $('#ip').val(data.ip); 

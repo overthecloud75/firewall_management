@@ -104,5 +104,11 @@
     - 0.4.0 
         apply Contents Security Policy
 
+22/11/09
+    - 0.4.1 
+        apply CSP inline javascript Nonce
+    - 0.4.2 (event_hanlder.html)
+        onClick -> event listner 
+
 ToDoList
     - log monitoring 

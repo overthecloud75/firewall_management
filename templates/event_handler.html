@@ -1,0 +1,7 @@
+<script nonce="{{ nonce }}">
+    {% for i, data in enumerate(data_list) %}
+    $("#td{{ loop.index0 }}").click(function() {
+        handleClick({{ data|tojson }}, {{ i }});
+    });
+    {% endfor %}
+</script>

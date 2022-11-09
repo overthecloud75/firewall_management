@@ -1,4 +1,4 @@
-function handleClick(event, data, index){
+function handleClick(data, index){
     $('#modalForm').modal('show'); ;
     $('#id').val(data._id);
     $('#timestamp').val(data.timestamp);

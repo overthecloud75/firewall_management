@@ -62,9 +62,12 @@ def create_app():
 
     app = Flask(__name__)
     # https://wikidocs.net/81066
-
     app.config['SECRET_KEY'] = os.urandom(32)
     app.config['SESSION_COOKIE_SECURE'] = True
+    ### jinja update 
+    app.jinja_env.globals.update(
+        enumerate=enumerate, 
+    )
 
     from views import main_views
     app.register_blueprint(main_views.bp)

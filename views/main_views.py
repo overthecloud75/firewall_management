@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for
+import uuid
 
 from models import Firewall, TicketModel, AccessModel
 from forms import RuleUpdateForm, TicketUpdateForm
@@ -17,6 +18,7 @@ def firewall():
 
     management = Firewall()
     form = RuleUpdateForm()
+    nonce = uuid.uuid4().hex
     if request.method == 'POST' and form.validate_on_submit():
         request_data = {'ip': form.ip.data, 'ip_class':form.ip_class.data, 'protocol': form.protocol.data, 'port': form.port.data, 'block': form.block.data}
         management.post(request_data=request_data)
@@ -33,6 +35,7 @@ def ticket():
 
     management = TicketModel()
     form = TicketUpdateForm()
+    nonce = uuid.uuid4().hex
     if request.method == 'POST':
         request_data = {'_id': form.id.data, 'fix':form.fix.data}
         management.post(request_data=request_data)
