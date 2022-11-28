@@ -6,7 +6,7 @@ from forms import RuleUpdateForm, TicketUpdateForm
 from configs import FIREWALL_COLUMN_HEADER, TICKET_COLUMN_HEADER, ACCESS_COLUMN_HEADER
 
 # blueprint
-bp = Blueprint('main', __name__, url_prefix='/manage')
+bp = Blueprint('main', __name__, url_prefix='/')
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():

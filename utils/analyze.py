@@ -254,15 +254,19 @@ class Analyze:
 
         nginx_log_list = []
         with open(NGINX_ERROR_LOG_DIR, 'r', encoding='utf-8') as f:
-            reverse_lines = f.readlines()[::-1]
-            for line in reverse_lines:
-                try:
-                    nginx_log_dict = self._parse_nginx_error_log(line)
-                    if nginx_log_dict['timestamp'] < self.previous_timestamp:
-                        break
-                    nginx_log_list.append(nginx_log_dict)
-                except Exception as e:
-                    self.logger.error('{}: {}'.format(e, line))
+            try:
+                reverse_lines = f.readlines()[::-1]
+            except Exception as e:
+                self.logger.error('{}'.format(e))
+            else:
+                for line in reverse_lines:
+                    try:
+                        nginx_log_dict = self._parse_nginx_error_log(line)
+                        if nginx_log_dict['timestamp'] < self.previous_timestamp:
+                            break
+                        nginx_log_list.append(nginx_log_dict)
+                    except Exception as e:
+                        self.logger.error('{}: {}'.format(e, line))
         return nginx_log_list
 
     def read_auth_log(self):

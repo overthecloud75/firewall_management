@@ -111,7 +111,6 @@ class LogModel(BasicModel):
                 '- attacker ip  : {} \n' \
                 '- attack num   : {} \n' \
                 '- country      : {} \n' \
-                '- signature    : {} \n' \
                 '\n' \
                 '다음의 site 에서 로그인 후 로그 분석이 가능합니다. \n' \
                 '{} 파일이 있는 경우 그 파일에서도 분석이 가능합니다. \n' \
@@ -122,9 +121,9 @@ class LogModel(BasicModel):
                 '\n' \
                 'Manual: {} \n' \
                 '\n' \
-                'Analyze the attack ip \n' \
+                'Analyze the attacker ip \n' \
                 ' -> {} \n' \
-                .format(site, site, str_time, log['ip'], attack_no, log['geo_ip'], signature, CSV_FILE_NAME, MONITORING_SITE, FIREWALL_SITE, MANUAL_SITE, ANALYZE_SITE + log['ip'])
+                .format(site, site, str_time, log['ip'], attack_no, log['geo_ip'], CSV_FILE_NAME, MONITORING_SITE, FIREWALL_SITE, MANUAL_SITE, ANALYZE_SITE + log['ip'])
 
             self.logger.info('email: {}'.format(subject))
             print('email: {}'.format(subject))

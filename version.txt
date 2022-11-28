@@ -110,5 +110,9 @@
     - 0.4.2 (event_hanlder.html)
         onClick -> event listner 
 
+22/11/28
+    - 0.4.3 
+        main_view : url_prefix='/manage' -> '/' 
+
 ToDoList
     - log monitoring 
