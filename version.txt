@@ -114,5 +114,9 @@
     - 0.4.3 
         main_view : url_prefix='/manage' -> '/' 
 
+22/12/03
+    - 0.4.4 (fix)
+        _find_country in analyze.py
+
 ToDoList
     - log monitoring 

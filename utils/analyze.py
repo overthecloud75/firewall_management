@@ -161,7 +161,7 @@ class Analyze:
         for s_ip, f_ip, country in zip(self.s_ip_list, self.f_ip_list, self.country_list):
             if geo_ip != 'un':
                 break
-            for i in range(4):
+            for i in range(1):
                 s_ip0 = int(s_ip[0])
                 s_ip1 = int(s_ip[1])
                 s_ip2 = int(s_ip[2])
@@ -198,6 +198,8 @@ class Analyze:
                             geo_ip = country
                     else:
                         geo_ip = country
+                else:
+                    geo_ip = country
         return geo_ip
         
     def read_fail2ban_log(self):
