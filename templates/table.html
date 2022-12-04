@@ -20,7 +20,7 @@
                 <td class="text-center align-middle" id="td{{ loop.index0 }}">{{ paging.offset + loop.index0 + 1}}</td>
                 {% for column in column_header %}
                 {% if column['accessor'] == 'ip'%}
-                <td class="text-center align-middle"><a href="{{ 'https://www.abuseipdb.com/check/' + data[column['accessor']] }}" target="_blank">{{ data[column['accessor']] }}</a></td>
+                <td class="text-center align-middle"><a href="{{ analyze_site + data[column['accessor']] }}" target="_blank">{{ data[column['accessor']] }}</a></td>
                 {% elif column['accessor'] == 'ticket' %}
                 <td class="text-center align-middle"><a href="{{ url_for('main.history', ticket=data[column['accessor']]) }}">{{ data[column['accessor']] }}</a></td>
                 {% else %}

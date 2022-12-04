@@ -118,5 +118,11 @@
     - 0.4.4 (fix)
         _find_country in analyze.py
 
+22/12/04
+    - 0.4.5 
+        apply codeql.yml 
+    - 0.4.6 
+        hard coding value to cofig in table.html
+
 ToDoList
     - log monitoring 

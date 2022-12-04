@@ -3,7 +3,7 @@ import uuid
 
 from models import Firewall, TicketModel, AccessModel
 from forms import RuleUpdateForm, TicketUpdateForm
-from configs import FIREWALL_COLUMN_HEADER, TICKET_COLUMN_HEADER, ACCESS_COLUMN_HEADER
+from configs import FIREWALL_COLUMN_HEADER, TICKET_COLUMN_HEADER, ACCESS_COLUMN_HEADER, ANALYZE_SITE
 
 # blueprint
 bp = Blueprint('main', __name__, url_prefix='/')
@@ -16,6 +16,7 @@ def index():
 def firewall():
     page = request.args.get('page', default=1)
 
+    analyze_site = ANALYZE_SITE
     management = Firewall()
     form = RuleUpdateForm()
     nonce = uuid.uuid4().hex
@@ -33,6 +34,7 @@ def firewall():
 def ticket():
     page = request.args.get('page', default=1)
 
+    analyze_site = ANALYZE_SITE
     management = TicketModel()
     form = TicketUpdateForm()
     nonce = uuid.uuid4().hex
@@ -50,6 +52,7 @@ def ticket():
 def history(ticket):
     page = request.args.get('page', default=1)
 
+    analyze_site = ANALYZE_SITE
     management = AccessModel()
     column_header = ACCESS_COLUMN_HEADER
     update_title = 'Access'
