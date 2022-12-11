@@ -111,8 +111,8 @@
         onClick -> event listner 
 
 22/11/28
-    - 0.4.3 
-        main_view : url_prefix='/manage' -> '/' 
+    - 0.4.3 (main_view.py)
+        url_prefix='/manage' -> '/' 
 
 22/12/03
     - 0.4.4 (fix)
@@ -123,6 +123,11 @@
         apply codeql.yml 
     - 0.4.6 
         hard coding value to cofig in table.html
+
+22/12/11
+    - 0.4.7 (analyze.py)
+        add access_log keys : host, body, request_time
+        to do that, should change log_format in nginx.conf 
 
 ToDoList
     - log monitoring 

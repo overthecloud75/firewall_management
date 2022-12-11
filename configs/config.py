@@ -56,7 +56,7 @@ IPV4_FILE = 'ipv4.csv'
 USE_NOTICE_EMAIL = True
 
 # log_keys
-NGINX_ACCESS_LOG_KEYS = ['timestamp', 'ip', 'method', 'url', 'http_version', 'status', 'size', 'referer', 'user_agent', 'geo_ip']
+NGINX_ACCESS_LOG_KEYS = ['timestamp', 'ip', 'host', 'method', 'url', 'http_version', 'status', 'size', 'referer', 'user_agent', 'body', 'request_time', 'geo_ip']
 AUTH_LOG_KEYS = ['timestamp', 'client', 'ip', 'id', 's_port', 'geo_ip']
 
 AUTH_LOG_FILTERING = ['Invalid user', 'invalid user', 'Disconnected from authenticating user', 'Failed password for', 'from', 

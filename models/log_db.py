@@ -44,7 +44,10 @@ class LogModel(BasicModel):
                 if key == 'timestamp':
                     result_list.append(result[key].strftime('%y-%m-%d %H:%M:%S'))
                 else:
-                    result_list.append(result[key])
+                    if key in result:
+                        result_list.append(result[key])
+                    else:
+                        result_list.append('-')
             wr.writerow(result_list)
             attack_no = attack_no + 1
         return attack_no

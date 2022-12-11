@@ -10,7 +10,7 @@ bp = Blueprint('main', __name__, url_prefix='/')
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
-    return redirect(url_for('main.firewall'))
+    return redirect(url_for('main.ticket'))
 
 @bp.route('/firewall', methods=['GET', 'POST'])
 def firewall():

@@ -34,7 +34,7 @@ class Analyze:
     def _parse_nginx_access_log(self, line):
 
         # https://pythonmana.com/2021/04/20210417005158969I.html
-        LOG_REGEX = re.compile(r'(?P<ip>.*?)- - \[(?P<time>.*?)\] "(?P<request>.*?)" (?P<status>.*?) (?P<bytes>.*?) "(?P<referer>.*?)" "(?P<ua>.*?)"')
+        LOG_REGEX = re.compile(r'(?P<ip>.*?)- - \[(?P<time>.*?)\] "(?P<request>.*?)" (?P<status>.*?) (?P<bytes>.*?) "(?P<referer>.*?)" "(?P<ua>.*?)" (?P<rt>.*?) "(?P<host>.*?)" "(?P<body>.*?)"')
         result = LOG_REGEX.match(line)
 
         ip = result.group('ip')[:-1]
@@ -42,11 +42,11 @@ class Analyze:
 
         request = result.group('request')
         request_list = request.split(' ')
-        try:
+        if len(request_list) == 3:
             method = request_list[0]
             url = request_list[1]
             http_version = request_list[2]
-        except:
+        else:
             method = '-'
             url = request
             http_version = '-'
@@ -54,6 +54,11 @@ class Analyze:
         size = int(result.group('bytes'))
         referer = result.group('referer')
         user_agent = result.group('ua')
+        request_time = result.group('rt')
+        host = result.group('host')
+        if host == '':
+            host = '-'
+        body = result.group('body')
 
         try:
             geo_ip = self._find_country(ip)
@@ -61,8 +66,8 @@ class Analyze:
             self.logger.info('{}: {}'.format(e, line))
             geo_ip = 'un'
 
-        nginx_log_dict = {'timestamp': datetime_timestamp, 'ip': ip, 'method': method, 'url': url, 
-                            'http_version': http_version, 'status': status, 'size': size, 'referer': referer, 'user_agent': user_agent, 'geo_ip': geo_ip}
+        nginx_log_dict = {'timestamp': datetime_timestamp, 'ip': ip, 'host': host, 'method': method, 'url': url,
+                            'http_version': http_version, 'status': status, 'size': size, 'referer': referer, 'user_agent': user_agent, 'body': body, 'request_time': request_time, 'geo_ip': geo_ip}
 
         return nginx_log_dict
 
@@ -97,11 +102,11 @@ class Analyze:
             if message.startswith('request: '):
                 request = message.replace('request: ', '')
                 request_list = request.split(' ')
-                try:
+                if len(request_list) == 3:
                     method = request_list[0]
                     url = request_list[1]
                     http_version = request_list[2]
-                except:
+                else:
                     method = '-'
                     url = request
                     http_version = '-'
